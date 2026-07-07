@@ -1,0 +1,9 @@
+# install with uv:
+#   uv venv --python 3.12 .venv
+#   uv pip install --python .venv/Scripts/python.exe torch torchvision --index-url https://download.pytorch.org/whl/cu126
+#   uv pip install --python .venv/Scripts/python.exe -r requirements.txt
+numpy
+Pillow
+PyYAML
+onnx>=1.14
+onnxruntime>=1.16
