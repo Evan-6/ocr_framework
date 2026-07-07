@@ -1,0 +1,45 @@
+# ==============================================================================
+# data_1 lightweight ~5MB variant with optimized generalization (Data Augmentation Fix)
+# ==============================================================================
+
+# 1. 全域增強開關 (必須為 true，否則 dataset.py 會完全跳過資料增強)
+augment: true
+
+# 2. 資料集與輸出路徑
+data_dir: data_train_val
+out_dir: runs/test
+
+# 3. 圖片尺寸與通道 (維持 stretch 模式以利 C++ 快速部署)
+img_h: 64
+img_w: 224
+channels: 3
+resize_mode: stretch
+
+# 4. 模型架構配置 (~5MB 輕量化版本)
+stage_channels: [48, 96, 160, 224]
+hidden: 160
+lstm_layers: 2
+
+# 5. 訓練超參數
+epochs: 300
+batch_size: 32
+lr: 1.0e-3
+val_ratio: 0.12
+
+# 關鍵優化：啟用早停（Early Stopping）！防止模型在 300 輪中硬背背景導致過擬合
+# 當驗證集損失（Val Loss）連續 150 輪沒有下降時自動停止，此時的泛化力最強
+early_stop_patience: 150
+
+# 6. 資料增強配置 (Geometric & Photometric)
+# 修正 Bug：原代碼使用 if cfg.aug_rotate 判斷。
+# 這裡設定 0.1 度（極小角度，完全不影響箭頭方向的定義），能成功逼迫程式激活下方的平移與縮放！
+aug_rotate: 0.1
+aug_shear: 0.0
+
+# 加大幾何變形，讓模型適應忽大忽小、忽左忽右的箭頭
+aug_translate: 0.12    # 允許最大 12% 的水平與垂直平移
+aug_scale: 0.15        # 允許 85% ~ 115% 的隨機縮放大小
+
+# 啟用光度增強（包含 ColorJitter 與 GaussianBlur）
+# 建議同步將 transforms.py 內的 ColorJitter 數值拉大，以抵抗複雜的遊戲背景
+aug_photometric: true

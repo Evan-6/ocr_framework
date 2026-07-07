@@ -60,11 +60,19 @@ def build_augment(cfg) -> T.Compose | None:
         aug.append(T.RandomApply([T.RandomAffine(**affine_kw)], p=0.7))
 
     if cfg.aug_photometric:
+        # 1. 大幅加強色彩、亮度干擾，機率從 0.5 提高到 0.7
         jitter = T.ColorJitter(brightness=0.25, contrast=0.25) if cfg.channels == 1 else \
-            T.ColorJitter(brightness=0.25, contrast=0.25, saturation=0.2, hue=0.02)
-        aug.append(T.RandomApply([jitter], p=0.5))
-        aug.append(T.RandomApply([T.GaussianBlur(3, sigma=(0.1, 1.2))], p=0.2))
-
+            T.ColorJitter(brightness=0.5, contrast=0.5, saturation=0.4, hue=0.05)
+        aug.append(T.RandomApply([jitter], p=0.7))
+        
+        # 2. 提高模糊機率（從 0.2 提高到 0.4），模擬截圖不清晰或動態模糊
+        aug.append(T.RandomApply([T.GaussianBlur(3, sigma=(0.1, 1.5))], p=0.4))
+        
+        # 3. 強制加入隨機等高線/銳化/海報化等干擾（自由選配，效果極佳）
+        aug.append(T.RandomChoice([
+            T.RandomAdjustSharpness(sharpness_factor=2, p=0.5),
+            T.RandomPosterize(bits=4, p=0.5)
+        ]))
     return T.Compose(aug) if aug else None
 
 
