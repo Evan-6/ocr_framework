@@ -7,3 +7,7 @@ Pillow
 PyYAML
 onnx>=1.14
 onnxruntime>=1.16
+fastapi
+uvicorn
+sqlalchemy
+python-multipart

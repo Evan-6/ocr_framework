@@ -14,6 +14,8 @@ class Config:
     data_dir: str = "data"
     exts: tuple[str, ...] = (".png", ".jpg", ".jpeg", ".bmp")
     val_ratio: float = 0.1
+    test_ratio: float = 0.1
+    split_file: str | None = None
     seed: int = 42
 
     # --- image / preprocessing ---
@@ -43,6 +45,8 @@ class Config:
     amp: bool = True
     num_workers: int = 2
     early_stop_patience: int = 40
+    select_metric: str = "val_loss"
+    select_mode: str = "min"
 
     # --- augmentation ---
     # Geometric jitter. Set aug_rotate/aug_shear to 0 for orientation-sensitive

@@ -24,3 +24,34 @@ def compute_metrics(preds: list[str], labels: list[str]) -> dict:
         "char_acc": max(0.0, 1.0 - edits / max(1, total_chars)),
         "n": len(labels),
     }
+
+
+def detailed_metrics(preds: list[str], labels: list[str]) -> dict:
+    """Per-position accuracy and a character confusion map.
+
+    Positional alignment is only well-defined when pred and gt have equal length
+    (they always do for fixed-length captchas; for CTC length mismatches the sample
+    is counted as unaligned and skipped for the positional breakdown).
+    """
+    from collections import Counter, defaultdict
+
+    pos_correct: Counter = Counter()
+    pos_total: Counter = Counter()
+    confusion: dict = defaultdict(Counter)  # gt_char -> {pred_char: count}
+    aligned = 0
+    for p, t in zip(preds, labels):
+        if len(p) != len(t):
+            continue
+        aligned += 1
+        for i, (cp, ct) in enumerate(zip(p, t)):
+            pos_total[i] += 1
+            if cp == ct:
+                pos_correct[i] += 1
+            else:
+                confusion[ct][cp] += 1
+    return {
+        "per_position_acc": {str(i): pos_correct[i] / pos_total[i] for i in sorted(pos_total)},
+        "confusion": {gt: dict(c) for gt, c in confusion.items()},
+        "aligned": aligned,
+        "unaligned": len(labels) - aligned,
+    }

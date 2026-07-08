@@ -66,6 +66,15 @@ web/
 - Live updates via **SSE** (simpler than WebSocket for one-way metric/log streaming).
 
 ### 2.2 Feature checklist
+- **Dataset upload**: web UI accepts **loose image files _or_ a ZIP** of a full dataset.
+  Server: extract to `datasets/<name>/`, walk recursively collecting images by extension,
+  parse `<label>_*.ext` from each filename, then scan → count / charset / length histogram /
+  invalid-file report. Design points:
+  - **ZIP-slip protection**: reject entries with absolute paths or `..`; flatten to basenames.
+  - **Filename validation**: skip files with no `_` / empty label; return a summary of skipped.
+  - **Duplicate policy**: same basename → configurable overwrite vs skip.
+  - **Limits**: max upload size, max file count; stream large ZIPs to disk (don't buffer in RAM).
+  - **Charset drift check**: warn if a new upload introduces chars a trained model doesn't have.
 - **Create job**: form for every config field, validation, inline docs, **presets**
   ("arrow 5MB", "text grayscale"), clone-from-existing.
 - **Queue & control**: start / stop / cancel / re-run.
@@ -84,6 +93,7 @@ POST /jobs            create+queue    GET /jobs            list
 GET  /jobs/{id}       detail+metrics  POST /jobs/{id}/stop
 GET  /jobs/{id}/events  SSE stream    GET  /jobs/{id}/artifacts
 GET  /datasets        list+stats      GET  /datasets/{d}/split
+POST /datasets/upload  images or .zip -> extract, validate, register
 POST /aug/preview     augmented imgs  POST /infer  (image -> pred)
 POST /models/{id}/publish   -> Phase 3
 ```
