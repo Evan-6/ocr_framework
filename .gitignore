@@ -6,5 +6,5 @@ __pycache__/
 *.flag
 *.onnx
 *.pt
-data*
+data_*
 Correct
